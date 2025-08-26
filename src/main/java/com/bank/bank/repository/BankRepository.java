@@ -31,4 +31,8 @@ public class BankRepository {
     public List<Transaction> findTransactions(Long accountId) {
         return transactions.getOrDefault(accountId, Collections.emptyList());
     }
+
+    public List<Account> findAllAccounts() {
+        return new ArrayList<>(accounts.values());
+    }
 }

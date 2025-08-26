@@ -4,38 +4,36 @@ import com.bank.bank.dto.*;
 import com.bank.bank.exception.GlobalExceptionHandler.AccountNotFoundException;
 import com.bank.bank.exception.GlobalExceptionHandler.InsufficientFundsException;
 import com.bank.bank.exception.GlobalExceptionHandler.InvalidTransactionException;
+import com.bank.bank.model.Account;
+import com.bank.bank.model.Transaction;
+import com.bank.bank.repository.BankRepository;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
 
 @Service
 public class BankService {
-    private final Map<Long, Account> accounts = new HashMap<>();
-    private final List<Transaction> transactions = new ArrayList<>();
-    private long nextAccountId = 1;
+    private final BankRepository repository;
+
+    // Constructor injection
+    public BankService(BankRepository repository) {
+        this.repository = repository;
+    }
 
     // Create account
     public AccountResponse createAccount(AccountRequest request) {
-        long id = nextAccountId++;
-        Account account = new Account(id, request.getName(), request.getInitialBalance());
-        accounts.put(id, account);
-
-        return new AccountResponse(id, request.getName(), request.getInitialBalance());
+        Account account = repository.saveAccount(request.getName(), request.getInitialBalance());
+        return new AccountResponse(account.getId(), account.getName(), account.getBalance());
     }
 
     // Transfer funds
     public void transfer(TransferRequest request) {
-        Account from = accounts.get(request.getFromAccount());
-        Account to = accounts.get(request.getToAccount());
+        Account from = repository.findAccount(request.getFromAccount())
+                .orElseThrow(() -> new AccountNotFoundException(request.getFromAccount()));
 
-        if (from == null) {
-            throw new AccountNotFoundException(request.getFromAccount());
-        }
-        if (to == null) {
-            throw new AccountNotFoundException(request.getToAccount());
-        }
+        Account to = repository.findAccount(request.getToAccount())
+                .orElseThrow(() -> new AccountNotFoundException(request.getToAccount()));
+
         if (from.getId().equals(to.getId())) {
             throw new InvalidTransactionException("Cannot transfer to the same account");
         }
@@ -43,81 +41,44 @@ public class BankService {
             throw new InsufficientFundsException(from.getId());
         }
 
+        // Update balances
         from.setBalance(from.getBalance().subtract(request.getAmount()));
         to.setBalance(to.getBalance().add(request.getAmount()));
 
-        transactions.add(new Transaction(from.getId(), to.getId(), request.getAmount(), LocalDateTime.now()));
+        // Save transaction in repository
+        Transaction tx = new Transaction(from.getId(), to.getId(), request.getAmount());
+        repository.saveTransaction(tx);
     }
 
     // List transactions for an account
     public List<TransactionResponse> getTransactions(Long accountId) {
-        List<TransactionResponse> result = new ArrayList<>();
-        for (Transaction t : transactions) {
-            if (t.getFromAccount().equals(accountId) || t.getToAccount().equals(accountId)) {
-                TransactionResponse resp = new TransactionResponse();
-                resp.setFromAccount(t.getFromAccount());
-                resp.setFromAccountName(accounts.get(t.getFromAccount()).getName());
-                resp.setToAccount(t.getToAccount());
-                resp.setToAccountName(accounts.get(t.getToAccount()).getName());
-                resp.setAmount(t.getAmount());
-                resp.setTimestamp(t.getTimestamp());
-                result.add(resp);
-            }
-        }
-        return result;
+        List<Transaction> txs = repository.findTransactions(accountId);
+
+        return txs.stream().map(t -> {
+            TransactionResponse resp = new TransactionResponse();
+            resp.setFromAccount(t.getFromAccount());
+            resp.setFromAccountName(repository.findAccount(t.getFromAccount())
+                    .map(Account::getName).orElse("Unknown"));
+            resp.setToAccount(t.getToAccount());
+            resp.setToAccountName(repository.findAccount(t.getToAccount())
+                    .map(Account::getName).orElse("Unknown"));
+            resp.setAmount(t.getAmount());
+            resp.setTimestamp(t.getTimestamp());
+            return resp;
+        }).toList();
     }
 
     // Show account information
     public AccountResponse getAccountById(Long id) {
-        Account account = accounts.get(id);
-        if (account == null) {
-            throw new AccountNotFoundException(id);
-        }
+        Account account = repository.findAccount(id)
+                .orElseThrow(() -> new AccountNotFoundException(id));
         return new AccountResponse(account.getId(), account.getName(), account.getBalance());
     }
 
     // List all accounts in memory
     public List<AccountResponse> getAllAccounts() {
-        return accounts.values().stream()
+        return repository.findAllAccounts().stream()
                 .map(acc -> new AccountResponse(acc.getId(), acc.getName(), acc.getBalance()))
                 .toList();
-    }
-
-    // Account class
-    private static class Account {
-        private final Long id;
-        private final String name;
-        private BigDecimal balance;
-
-        public Account(Long id, String name, BigDecimal balance) {
-            this.id = id;
-            this.name = name;
-            this.balance = balance;
-        }
-
-        public Long getId() { return id; }
-        public String getName() { return name; }
-        public BigDecimal getBalance() { return balance; }
-        public void setBalance(BigDecimal balance) { this.balance = balance; }
-    }
-
-    // Transaction class
-    private static class Transaction {
-        private final Long fromAccount;
-        private final Long toAccount;
-        private final BigDecimal amount;
-        private final LocalDateTime timestamp;
-
-        public Transaction(Long fromAccount, Long toAccount, BigDecimal amount, LocalDateTime timestamp) {
-            this.fromAccount = fromAccount;
-            this.toAccount = toAccount;
-            this.amount = amount;
-            this.timestamp = timestamp;
-        }
-
-        public Long getFromAccount() { return fromAccount; }
-        public Long getToAccount() { return toAccount; }
-        public BigDecimal getAmount() { return amount; }
-        public LocalDateTime getTimestamp() { return timestamp; }
     }
 }
