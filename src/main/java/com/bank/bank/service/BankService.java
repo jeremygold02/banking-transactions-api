@@ -19,9 +19,7 @@ public class BankService {
     private final BankRepository repository;
 
     // Constructor injection
-    public BankService(BankRepository repository) {
-        this.repository = repository;
-    }
+    public BankService(BankRepository repository) { this.repository = repository; }
 
     // Create account
     public AccountResponse createAccount(AccountRequest request) {

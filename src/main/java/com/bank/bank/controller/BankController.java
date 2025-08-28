@@ -11,38 +11,25 @@ import java.util.List;
 public class BankController {
     private final BankService service;
 
-    public BankController(BankService service) {
-        this.service = service;
-    }
+    public BankController(BankService service) { this.service = service; }
 
     // Create account
     @PostMapping("/create")
-    public AccountResponse createAccount(@RequestBody AccountRequest request) {
-        return service.createAccount(request);
-    }
+    public AccountResponse createAccount(@RequestBody AccountRequest request) { return service.createAccount(request); }
 
     // Transfer funds
     @PostMapping("/transfer")
-    public String transfer(@RequestBody TransactionRequest request) {
-        service.transfer(request);
-        return "Transfer successful!";
-    }
+    public String transfer(@RequestBody TransactionRequest request) { service.transfer(request); return "Transfer successful!"; }
 
     // List transactions
     @GetMapping("/{accountId}/transactions")
-    public List<TransactionResponse> getTransactions(@PathVariable Long accountId) {
-        return service.getTransactions(accountId);
-    }
+    public List<TransactionResponse> getTransactions(@PathVariable Long accountId) { return service.getTransactions(accountId); }
 
     // Show account information
     @GetMapping("/{accountId}")
-    public AccountResponse getAccountById(@PathVariable Long accountId) {
-        return service.getAccountById(accountId);
-    }
+    public AccountResponse getAccountById(@PathVariable Long accountId) { return service.getAccountById(accountId); }
 
     // List all accounts in memory
     @GetMapping
-    public List<AccountResponse> getAllAccounts() {
-        return service.getAllAccounts();
-    }
+    public List<AccountResponse> getAllAccounts() { return service.getAllAccounts(); }
 }
