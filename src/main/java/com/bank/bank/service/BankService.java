@@ -44,7 +44,7 @@ public class BankService {
 
         if (from.getId().equals(to.getId())) { throw new InvalidTransactionException("Cannot transfer to the same account"); }
         if (from.getBalance().compareTo(amount) < 0) { throw new InsufficientFundsException(from.getId()); }
-        if (amount.signum() < 0) { throw new InvalidAmountException("Amount must be positive"); }
+        if (amount.signum() < 1) { throw new InvalidAmountException("Amount must be greater than 0"); }
         if (amount.scale() > 2) { throw new InvalidAmountException("Amount cannot have more than 2 decimal places"); }
 
         // Update balances
