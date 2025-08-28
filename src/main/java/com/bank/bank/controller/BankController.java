@@ -24,7 +24,7 @@ public class BankController {
 
     // Transfer funds
     @PostMapping("/transfer")
-    public String transfer(@Valid @RequestBody TransferRequest request) {
+    public String transfer(@Valid @RequestBody TransactionRequest request) {
         service.transfer(request);
         return "Transfer successful!";
     }

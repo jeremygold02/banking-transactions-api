@@ -27,7 +27,7 @@ public class BankService {
     }
 
     // Transfer funds
-    public void transfer(TransferRequest request) {
+    public void transfer(TransactionRequest request) {
         Account from = repository.findAccount(request.getFromAccount())
                 .orElseThrow(() -> new AccountNotFoundException(request.getFromAccount()));
 
