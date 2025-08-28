@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
 
-public class TransferRequest {
+public class TransactionRequest {
     @NotNull
     private Long fromAccount;
 
