@@ -15,37 +15,27 @@ import java.util.Map;
 public class GlobalExceptionHandler {
     // Invalid/empty name
     public static class InvalidNameException extends RuntimeException {
-        public InvalidNameException(String message) {
-            super(message);
-        }
+        public InvalidNameException(String message) { super(message); }
     }
     
     // Account not found/doesn't exist
     public static class AccountNotFoundException extends RuntimeException {
-        public AccountNotFoundException(Long id) {
-            super("Account not found: " + id);
-        }
+        public AccountNotFoundException(Long id) { super("Account not found: " + id); }
     }
 
     // Insufficient funds
     public static class InsufficientFundsException extends RuntimeException {
-        public InsufficientFundsException(Long id) {
-            super("Insufficient funds in account: " + id);
-        }
+        public InsufficientFundsException(Long id) { super("Insufficient funds in account: " + id); }
     }
 
     // Invalid amount
     public static class InvalidAmountException extends RuntimeException {
-        public InvalidAmountException(String message) {
-            super(message);
-        }
+        public InvalidAmountException(String message) { super(message); }
     }
 
     // Invalid transaction
     public static class InvalidTransactionException extends RuntimeException {
-        public InvalidTransactionException(String message) {
-            super(message);
-        }
+        public InvalidTransactionException(String message) { super(message); }
     }
 
     // Handlers
