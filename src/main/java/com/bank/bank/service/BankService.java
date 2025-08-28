@@ -58,17 +58,17 @@ public class BankService {
 
     // List transactions for an account
     public List<TransactionResponse> getTransactions(Long accountId) {
-        List<Transaction> txs = repository.findTransactions(accountId);
+        List<Transaction> transactions = repository.findTransactions(accountId);
 
-        return txs.stream().map(t -> {
-            TransactionResponse resp = new TransactionResponse();
-            resp.setFromAccount(t.getFromAccount());
-            resp.setFromAccountName(repository.findAccount(t.getFromAccount()).map(Account::getName).orElse("Unknown"));
-            resp.setToAccount(t.getToAccount());
-            resp.setToAccountName(repository.findAccount(t.getToAccount()).map(Account::getName).orElse("Unknown"));
-            resp.setAmount(t.getAmount());
-            resp.setTimestamp(t.getTimestamp());
-            return resp;
+        return transactions.stream().map(t -> {
+            TransactionResponse response = new TransactionResponse();
+            response.setFromAccount(t.getFromAccount());
+            response.setFromAccountName(repository.findAccount(t.getFromAccount()).map(Account::getName).orElse("Unknown"));
+            response.setToAccount(t.getToAccount());
+            response.setToAccountName(repository.findAccount(t.getToAccount()).map(Account::getName).orElse("Unknown"));
+            response.setAmount(t.getAmount());
+            response.setTimestamp(t.getTimestamp());
+            return response;
         }).toList();
     }
 
