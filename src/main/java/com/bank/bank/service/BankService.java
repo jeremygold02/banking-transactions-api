@@ -27,7 +27,7 @@ public class BankService {
     public AccountResponse createAccount(AccountRequest request) {
         BigDecimal initialBalance = request.getInitialBalance();
 
-        if (request.getName() == null || request.getName().trim().isEmpty()) { throw new InvalidNameException("Account name cannot be blank"); }
+        if (request.getName() == null || request.getName().trim().isEmpty()) { throw new InvalidNameException("Account name blank or invalid"); }
         if (initialBalance == null) { throw new InvalidAmountException("Initial balance is required"); }
         if (initialBalance.signum() < 0) { throw new InvalidAmountException("Initial balance must be positive"); }
         if (initialBalance.scale() > 2) {  throw new InvalidAmountException("Initial balance cannot have more than 2 decimal places"); }
@@ -41,9 +41,13 @@ public class BankService {
         Account from = repository.findAccount(request.getFromAccount()).orElseThrow(() -> new AccountNotFoundException(request.getFromAccount()));
         Account to = repository.findAccount(request.getToAccount()).orElseThrow(() -> new AccountNotFoundException(request.getToAccount()));
 
+        if (request.getAmount() == null) { throw new InvalidAmountException("Transfer amount is required"); }
+        BigDecimal amount = request.getAmount();
+
         if (from.getId().equals(to.getId())) { throw new InvalidTransactionException("Cannot transfer to the same account"); }
-        if (from.getBalance().compareTo(request.getAmount()) < 0) { throw new InsufficientFundsException(from.getId()); }
-        if(request.getAmount().scale() > 2) { throw new InvalidTransactionException("Amount cannot have more than 2 decimal places"); }
+        if (from.getBalance().compareTo(amount) < 0) { throw new InsufficientFundsException(from.getId()); }
+        if (amount.signum() < 0) { throw new InvalidAmountException("Amount must be positive"); }
+        if (amount.scale() > 2) { throw new InvalidAmountException("Amount cannot have more than 2 decimal places"); }
 
         // Update balances
         from.setBalance(from.getBalance().subtract(request.getAmount()));

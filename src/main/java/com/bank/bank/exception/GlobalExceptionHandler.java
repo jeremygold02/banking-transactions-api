@@ -6,6 +6,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -88,5 +89,15 @@ public class GlobalExceptionHandler {
         Map<String, String> error = new HashMap<>();
         error.put("error", ex.getMessage());
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Map<String, String>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        Map<String, String> error = new HashMap<>();
+        String paramName = ex.getName();  // parameter name
+        String requiredType = "unknown";
+        if (ex.getRequiredType() != null) { requiredType = ex.getRequiredType().getSimpleName(); }
+        error.put("error", String.format("Parameter '%s' must be of type %s", paramName, requiredType));
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 }
