@@ -5,6 +5,7 @@ import com.bank.bank.model.Transaction;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
+import java.math.BigDecimal;
 
 @Repository
 public class BankRepository {
@@ -12,7 +13,7 @@ public class BankRepository {
     private final Map<Long, List<Transaction>> transactions = new HashMap<>();
     private Long accountIdCounter = 1L;
 
-    public synchronized Account saveAccount(String name, java.math.BigDecimal initialBalance) {
+    public synchronized Account saveAccount(String name, BigDecimal initialBalance) {
         Account account = new Account(accountIdCounter++, name, initialBalance);
         accounts.put(account.getId(), account);
         transactions.put(account.getId(), new ArrayList<>());
