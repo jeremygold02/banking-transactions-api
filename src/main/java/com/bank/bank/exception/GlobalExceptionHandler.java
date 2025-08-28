@@ -12,6 +12,12 @@ import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+    // Invalid/empty name
+    public static class InvalidNameException extends RuntimeException {
+        public InvalidNameException(String message) {
+            super(message);
+        }
+    }
     
     // Account not found/doesn't exist
     public static class AccountNotFoundException extends RuntimeException {
@@ -34,18 +40,31 @@ public class GlobalExceptionHandler {
         }
     }
 
-    // Invalid decimal (>2 decimals)
-    public static class InvalidDecimalException extends RuntimeException {
-        public InvalidDecimalException(String message) {
-            super(message);
-        }
-    }
-
     // Invalid transaction
     public static class InvalidTransactionException extends RuntimeException {
         public InvalidTransactionException(String message) {
             super(message);
         }
+    }
+
+    // Handlers
+    @ExceptionHandler(AccountNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleNotFound(AccountNotFoundException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler({
+            InvalidNameException.class,
+            InvalidAmountException.class,
+            InvalidTransactionException.class,
+            InsufficientFundsException.class
+    })
+    public ResponseEntity<Map<String, String>> handleBadRequests(RuntimeException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -57,31 +76,10 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(AccountNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleAccountNotFound(AccountNotFoundException ex) {
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidJson(HttpMessageNotReadableException ex) {
         Map<String, String> error = new HashMap<>();
-        error.put("error", ex.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler(InsufficientFundsException.class)
-    public ResponseEntity<Map<String, String>> handleInsufficientFunds(InsufficientFundsException ex) {
-        Map<String, String> error = new HashMap<>();
-        error.put("error", ex.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(InvalidAmountException.class)
-    public ResponseEntity<Map<String, String>> handleInvalidAmount(InvalidAmountException ex) {
-        Map<String, String> error = new HashMap<>();
-        error.put("error", ex.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(InvalidDecimalException.class)
-    public ResponseEntity<Map<String, String>> handleInvalidDecimal(InvalidDecimalException ex) {
-        Map<String, String> error = new HashMap<>();
-        error.put("error", ex.getMessage());
+        error.put("error", "Invalid request body: check field formats");
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
@@ -90,21 +88,5 @@ public class GlobalExceptionHandler {
         Map<String, String> error = new HashMap<>();
         error.put("error", ex.getMessage());
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    @ExceptionHandler(InvalidTransactionException.class)
-    public ResponseEntity<Map<String, String>> handleInvalidTransaction(InvalidTransactionException ex) {
-        Map<String, String> error = new HashMap<>();
-        error.put("error", ex.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<Map<String, String>> handleJsonParseError(HttpMessageNotReadableException ex) {
-        String message = ex.getMostSpecificCause().getMessage();
-        if (message.contains("Initial balance cannot have more than 2 decimal places")) {
-            return ResponseEntity.badRequest().body(Map.of("error", message));
-        }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Invalid request body"));
     }
 }

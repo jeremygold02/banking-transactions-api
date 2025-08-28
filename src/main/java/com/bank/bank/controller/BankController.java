@@ -2,7 +2,6 @@ package com.bank.bank.controller;
 
 import com.bank.bank.dto.*;
 import com.bank.bank.service.BankService;
-import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,13 +17,13 @@ public class BankController {
 
     // Create account
     @PostMapping("/create")
-    public AccountResponse createAccount(@Valid @RequestBody AccountRequest request) {
+    public AccountResponse createAccount(@RequestBody AccountRequest request) {
         return service.createAccount(request);
     }
 
     // Transfer funds
     @PostMapping("/transfer")
-    public String transfer(@Valid @RequestBody TransactionRequest request) {
+    public String transfer(@RequestBody TransactionRequest request) {
         service.transfer(request);
         return "Transfer successful!";
     }
